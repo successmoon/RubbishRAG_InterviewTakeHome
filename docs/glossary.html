@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metrics & Concepts Glossary — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html" class="active">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Technical Reference</span>
+      <span class="badge badge-success">IR & ML Metrics</span>
+    </div>
+
+    <h1>📖 Metrics & Information Retrieval Glossary</h1>
+    <p class="lead">
+      A concise, mathematically precise glossary of the evaluation metrics, search formulas, and calibration concepts used across the RubbishRAG benchmark.
+    </p>
+
+    <h2>1. Information Retrieval (IR) Metrics</h2>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Hit@K (Hit-Rate at Rank K)</h3>
+      <p>
+        <strong>Definition:</strong> The fraction of queries for which at least one acceptable relevant (gold) document is present within the top-$K$ retrieved candidates.
+      </p>
+      <pre><code>Hit@K = (1 / |Q|) * Σ 𝟙( ∃ d ∈ Cites[:K] such that d ∈ Gold(q) )</code></pre>
+      <p><em>In RubbishRAG:</em> Answer queries are officially scored on <strong>Hit@3</strong> (gold document cited within the first three citations).</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>MRR (Mean Reciprocal Rank)</h3>
+      <p>
+        <strong>Definition:</strong> The average of the reciprocal ranks of the first relevant document retrieved across all queries.
+      </p>
+      <pre><code>MRR = (1 / |Q|) * Σ ( 1 / rank_first_gold(q) )</code></pre>
+      <p>If the first gold document appears at position 1, reciprocal rank is $1.0$; if at position 2, $0.5$; if position 3, $0.33$. If not in top-$K$, it is $0.0$.</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>nDCG (Normalized Discounted Cumulative Gain)</h3>
+      <p>
+        <strong>Definition:</strong> Measures ranking quality accounting for the graded position of all relevant documents, penalizing relevant items that appear late in the list.
+      </p>
+      <pre><code>DCG@K = Σ ( rel_i / log2(i + 1) )
+nDCG@K = DCG@K / IDCG@K</code></pre>
+      <p>Where <code>IDCG@K</code> is the ideal DCG obtained by sorting items in perfect relevance order.</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Reciprocal Rank Fusion (RRF)</h3>
+      <p>
+        <strong>Definition:</strong> An unsupervised rank aggregation method that combines multiple independent retrieval rankings (e.g. sparse BM25 and dense embeddings) based on reciprocal rank order rather than arbitrary score magnitudes:
+      </p>
+      <pre><code>RRF_score(d) = Σ_m [ 1 / (k + rank_m(d)) ]</code></pre>
+      <p>where $k$ is a smoothing constant (standard default: $k = 60$). RRF is robust against outlier scores and probability distribution mismatches.</p>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+    <h2>2. Calibration & Decision Metrics</h2>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Brier Score</h3>
+      <p>
+        <strong>Definition:</strong> A strictly proper scoring rule that measures the mean squared error between predicted probabilities and actual binary outcomes:
+      </p>
+      <pre><code>Brier = (1 / N) * Σ (p_i - y_i)²</code></pre>
+      <p>A Brier score of $0.0$ indicates perfect probabilistic foresight. A score of $0.25$ represents uninformative coin-flip guessing for balanced binary outcomes.</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>ECE (Expected Calibration Error)</h3>
+      <p>
+        <strong>Definition:</strong> The weighted average difference between predicted confidence and empirical accuracy across $M$ probability bins:
+      </p>
+      <pre><code>ECE = Σ_m ( |B_m| / N ) * | acc(B_m) - conf(B_m) |</code></pre>
+      <p>When a model reports $80\%$ confidence on a bin, exactly $80\%$ of those samples should be correct. Lower ECE values (&lt;0.05) indicate well-calibrated confidence estimates.</p>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Selective Prediction & Risk-Coverage Curve</h3>
+      <p>
+        <strong>Definition:</strong> In high-stakes credit domains, models can choose to abstain or escalate when confidence falls below threshold $\theta$.
+      </p>
+      <ul>
+        <li><strong>Coverage:</strong> Fraction of queries processed without human or secondary escalation.</li>
+        <li><strong>Selective Risk / Error:</strong> Error rate calculated exclusively over accepted predictions.</li>
+      </ul>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+    <h2>3. System & Efficiency Metrics</h2>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Latency Percentiles (p50, p95, p99)</h3>
+      <p>
+        Rather than relying solely on mean latency, production systems monitor distributional percentiles:
+      </p>
+      <ul>
+        <li><strong>p50 (Median):</strong> Half of all requests complete within this duration.</li>
+        <li><strong>p95:</strong> The 95th percentile, capturing tail latency and sporadic overhead.</li>
+        <li><strong>p99:</strong> Worst 1% outlier execution times.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Context Token Savings & Pareto Frontier</h3>
+      <p>
+        <strong>Context Token Savings:</strong> Percentage reduction in retrieved input tokens passed to generators through dynamic top-$K$ budgeting relative to a static $K=5$ or $K=10$ baseline.
+      </p>
+      <p>
+        <strong>Pareto Trade-off:</strong> A solution dominates if it achieves higher accuracy with lower latency and fewer context tokens. If higher accuracy requires greater compute, the curve tracing optimal configurations forms the Pareto frontier.
+      </p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="ui.html">Next: Web Studio & Playground →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

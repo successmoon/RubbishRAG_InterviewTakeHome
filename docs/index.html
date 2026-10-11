@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RubbishRAG — AI Engineer Take-Home Challenge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">AI Engineer Take-Home</span>
+      <span class="badge badge-danger">Real Credit-Scoring QA</span>
+    </div>
+
+    <h1>🗑️ RubbishRAG — "AI made it in 1 minute!" …prove it wrong</h1>
+    <p class="lead">A rigorous take-home challenge for AI / ML / RAG Engineers. Measure system behavior, isolate root causes, fix pipeline stages, and back every single claim with logged traces and empirical plots.</p>
+
+    <pre class="ascii-banner">
+  ╔═════════════════════════════════════════════════════════════════╗
+  ║    ____        _     _     _     _     ____      _    ____      ║
+  ║   |  _ \ _   _| |__ | |__ (_)___| |__ |  _ \    / \  / ___|     ║
+  ║   | |_) | | | | '_ \| '_ \| / __| '_ \| |_) |  / _ \| |  _      ║
+  ║   |  _ <| |_| | |_) | |_) | \__ \ | | |  _ <  / ___ \ |_| |     ║
+  ║   |_| \_\\__,_|_.__/|_.__/|_|___/_| |_|_| \_\/_/   \_\____|     ║
+  ║                                                                 ║
+  ║       "AI made it in 1 minute!" ... prove it wrong              ║
+  ╚═════════════════════════════════════════════════════════════════╝
+    </pre>
+
+    <h2>The Premise</h2>
+    <p>
+      You are handed a Persian RAG chatbot over a real credit-scoring knowledge base (330 QA pairs in <code>corpus/test.csv</code>).
+      It <em>looks</em> finished and polished on the surface, but it only scores <strong>~25–30% on the visible benchmark</strong>.
+    </p>
+    <p>
+      Your manager remarks: <em>"AI built this in one minute — prove it wrong."</em>
+    </p>
+    <p>
+      Generic LLM advice tuned for English frontier models will not rescue you here: the bugs are embedded deeply inside the scoring formulas, length normalization, tokenization, poison documents, and ungrounded resolvers of this specific system. AI coding assistants are welcomed, but they are not sufficient without disciplined engineering.
+    </p>
+
+    <h2>The Challenge at a Glance</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>🔍 1. Probe & Measure</h3>
+        <p>Use <code>rubbish bepar</code>, <code>rubbish inspect-trace</code>, and <code>rubbish bekesh</code> to examine BM25, dense, and fused scores. Inspect distributions before forming theories.</p>
+      </div>
+      <div class="card">
+        <h3>🛠️ 2. Fix Pipeline Stages</h3>
+        <p>Override the decorator stages in <code>rubbish_rag/</code>: normalize Persian script, implement slot matching, penalize poison docs, and route ambiguous queries.</p>
+      </div>
+      <div class="card">
+        <h3>📊 3. Defend with Proof</h3>
+        <p>Document each change in <code>docs/PROOF.md</code> with trace IDs from <code>traces/trace.jsonl</code>. Claims without empirical traces are invalid.</p>
+      </div>
+    </div>
+
+    <h2>3-Tier Task Structure</h2>
+    <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="card" style="border-top: 4px solid var(--primary);">
+        <h3>Tier 1: Required Core</h3>
+        <p><strong>~3–4 hours</strong></p>
+        <p>Tasks A–D: Retrieval Characterization, Hybrid Fusion, Normalization, Chunking.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--warning);">
+        <h3>Tier 2: Choose-2 Electives</h3>
+        <p><strong>~2 hours</strong></p>
+        <p>Choose 2 of 4: Reranking & Diversity, Adversarial Defense, Polarity, Grounded Clarification.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid #a855f7;">
+        <h3>Tier 3: Staff Bonus</h3>
+        <p><strong>Optional (~3–4 hours)</strong></p>
+        <p>Adaptive System-1 RAG Decision Judge with dynamic context budget & calibration.</p>
+      </div>
+    </div>
+
+    <h2>Quickstart (5-Minute Setup)</h2>
+    <p>Work on a GitHub fork of this repository. Clone your fork and check out your working branch:</p>
+
+    <pre><code># 1. Clone your fork and create your working branch
+git clone https://github.com/&lt;YOUR-USERNAME&gt;/RubbishRAG_InterviewTakeHome.git
+cd RubbishRAG_InterviewTakeHome
+git checkout -b solution/&lt;your-github-username&gt;
+
+# 2. Install dependencies (Python 3.11 required)
+pip install -r requirements.txt
+
+# 3. Meet the system (first run records candidate identity)
+python3 rubbish.py salam
+python3 rubbish.py bepar "رتبه C1 یعنی چی؟" --topk 5
+python3 rubbish.py bench          # Runs visible benchmark -> traces/metrics.json
+python3 rubbish.py bekesh         # Generates diagnostic plots in plots/
+python3 rubbish.py judge "رتبه A2 چیست؟"  # Tests System-1 decision judge
+python3 rubbish.py ui             # Launches interactive Studio UI on :8000
+python3 rubbish.py bastesh        # Stamps README report & packs submissions/submission.zip</code></pre>
+
+    <div class="callout callout-warning">
+      <strong>⚠️ Honor Code: Sealed Server Boundary</strong><br>
+      The <code>server/</code> scoring module simulates an external API endpoint. You must interact with it through <code>rubbish bepar</code> and <code>/retrieve</code>. Do not reverse-engineer hidden query answers directly — all claims must stem from logged probes.
+    </div>
+
+    <h2>Next Steps</h2>
+    <p>Follow the documentation pages to master the system:</p>
+    <ul>
+      <li><a href="tasks.html">Review the Tasks & 3-Tier Scope</a></li>
+      <li><a href="architecture.html">Read the System Architecture & Data Flow</a></li>
+      <li><a href="adaptive-judge.html">Explore the Adaptive System-1 Decision Judge Track</a></li>
+      <li><a href="guide.html">Learn how to probe and diagnose symptoms</a></li>
+      <li><a href="deliverables.html">Review the grading rubric and PROOF.md requirements</a></li>
+      <li><a href="glossary.html">Inspect the Information Retrieval Metrics Glossary</a></li>
+      <li><a href="ui.html">Explore the interactive Web Studio & Playground</a></li>
+    </ul>
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="tasks.html">Next: Tasks & Scope →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

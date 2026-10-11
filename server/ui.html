@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RubbishRAG — Interactive Studio & Playground</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --primary: #38bdf8;
+    --primary-hover: #0ea5e9;
+    --accent: #f43f5e;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --code-bg: #090d16;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Vazirmatn", Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1.5rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .title-group h1 {
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+  }
+  .badge {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    flex: 1;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .panel-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .btn-sample {
+    background: #283548;
+    color: #cbd5e1;
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-sample:hover {
+    background: #334155;
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--primary);
+  }
+  button.btn-primary {
+    background: var(--primary);
+    color: #04121d;
+    font-weight: 700;
+    border: none;
+    padding: 0.75rem 1.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.15s;
+  }
+  button.btn-primary:hover {
+    background: var(--primary-hover);
+  }
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--code-bg);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .mode-toggle select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    outline: none;
+  }
+  .response-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .clarify-card {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid var(--warning);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .clarify-card h3 {
+    color: var(--warning);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .clarify-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .clarify-btn {
+    background: var(--warning);
+    color: #1e1b4b;
+    font-weight: 600;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .clarify-btn:hover { opacity: 0.9; }
+  .answer-card {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--success);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .answer-card h3 {
+    color: var(--success);
+    font-size: 1rem;
+  }
+  .hits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    max-height: 480px;
+  }
+  .hit-item {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .hit-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .hit-scores {
+    display: flex;
+    gap: 0.75rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+  }
+  .hit-scores span {
+    background: #1e293b;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid #334155;
+  }
+  .poison-pill {
+    background: rgba(244, 63, 94, 0.2) !important;
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+  }
+  .hit-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+  }
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <h1>🗑️ RubbishRAG Studio</h1>
+    <span class="badge">Persian Credit-Scoring RAG Benchmark</span>
+  </div>
+  <div class="subtitle">AI made it in 1 minute — prove it wrong. Test queries, inspect retrieval scores & resolve ambiguity.</div>
+</header>
+
+<div class="layout">
+  <!-- Query & Result Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>🔎 پرسش و آزمایش زنده (Interactive Query)</span>
+      <div class="mode-toggle">
+        <label for="modeSelect">حالت:</label>
+        <select id="modeSelect">
+          <option value="orchestrator">Fixed Orchestrator (با رفع ابهام)</option>
+          <option value="naive">Naive RubbishRAG (سیستم خام)</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem;">نمونه سوالات آزمایشی (برای تست سریع):</div>
+      <div class="controls">
+        <button class="btn-sample" onclick="setQuery('رتبه C1 یعنی چی؟')">رتبه C1</button>
+        <button class="btn-sample" onclick="setQuery('رتبه‌م E3ه، بانک صادرات بهم وام میده؟')">تصمیم وام بانک</button>
+        <button class="btn-sample" onclick="setQuery('بدهی دارم چرا امتیازم بالاست؟')">ابهام بدهی (Clarify)</button>
+        <button class="btn-sample" onclick="setQuery('چکم برگشت خورده پاک میشه؟')">چک برگشتی (Clarify)</button>
+        <button class="btn-sample" onclick="setQuery('امتیاز شما ۹۰۰ است!')">تست داکیومنت جعلی (Poison)</button>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="queryInput" placeholder="پرسش خود را بنویسید (مثلاً: رتبه اعتباری C2 چیست؟)..." value="رتبه C1 یعنی چی؟">
+      <button class="btn-primary" onclick="runQuery()">ارسال</button>
+    </div>
+
+    <div class="panel-header" style="margin-top: 0.5rem;">
+      <span>💡 پاسخ خروجی (Pipeline Resolution)</span>
+      <span id="timingBadge" style="font-size: 0.8rem; color: var(--muted);">زمان: -- ms</span>
+    </div>
+
+    <div class="response-box" id="responseBox">
+      <div style="color: var(--muted); text-align: center; margin: auto;">پرسشی ثبت کنید یا روی دکمه «ارسال» کلیک نمایید.</div>
+    </div>
+  </div>
+
+  <!-- Retrieval & Hits Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span>📊 اسناد بازیابی‌شده و نمرات (Retrieval Hits)</span>
+      <span id="hitsCount" style="font-size: 0.85rem; color: var(--primary);">تعداد اسناد: ۰</span>
+    </div>
+
+    <div class="hits-list" id="hitsList">
+      <div style="color: var(--muted); text-align: center; margin: auto; padding: 2rem;">هنوز سندی دریافت نشده است.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>RubbishRAG v1.0 — ICS Interview Take-Home</span>
+  <span><a href="/docs" target="_blank">Swagger API</a> · <a href="/redoc" target="_blank">ReDoc</a> · <a href="https://github.com/AliNikkhah2001/RubbishRAG_InterviewTakeHome" target="_blank">GitHub Repo</a></span>
+</footer>
+
+<script>
+function setQuery(text) {
+  document.getElementById('queryInput').value = text;
+  runQuery();
+}
+
+async function runQuery(customQuery) {
+  const query = customQuery || document.getElementById('queryInput').value.trim();
+  if (!query) return;
+
+  const mode = document.getElementById('modeSelect').value;
+  const resBox = document.getElementById('responseBox');
+  const hitsList = document.getElementById('hitsList');
+  const timingBadge = document.getElementById('timingBadge');
+  const hitsCount = document.getElementById('hitsCount');
+
+  resBox.innerHTML = '<div style="color: var(--muted); text-align: center; margin: auto;">در حال پردازش و استعلام...</div>';
+  hitsList.innerHTML = '<div style="color: var(--muted); text-align: center; margin: auto;">در حال بارگذاری نتایج...</div>';
+
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch('/studio/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query, mode: mode, topk: 5 })
+    });
+    const data = await res.json();
+    const duration = Math.round(performance.now() - t0);
+    timingBadge.innerText = `زمان: ${duration} ms`;
+
+    // Render Answer / Clarification
+    if (data.status === 'clarify') {
+      let optHtml = '';
+      (data.options || []).forEach(opt => {
+        optHtml += `<button class="clarify-btn" onclick="handleClarify('${query}', '${opt}')">${opt}</button>`;
+      });
+      resBox.innerHTML = `
+        <div class="clarify-card">
+          <h3>⚠️ نیاز به شفاف‌سازی (Ambiguity Detected)</h3>
+          <p><strong>${data.question || 'لطفاً جزئیات بیشتری مشخص کنید:'}</strong></p>
+          <div class="clarify-options">${optHtml}</div>
+        </div>
+      `;
+    } else {
+      const cites = (data.cites || []).join(', ') || 'ندارد';
+      resBox.innerHTML = `
+        <div class="answer-card">
+          <h3>✅ پاسخ نهایی (Status: Answer)</h3>
+          <p style="font-size: 1.05rem; line-height: 1.6;">${data.brief || 'بدون پاسخ'}</p>
+          <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">
+            <span>مستندات مرجع (Citations): <code>[${cites}]</code></span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Hits
+    const hits = data.hits || [];
+    hitsCount.innerText = `تعداد اسناد: ${hits.length}`;
+    if (hits.length === 0) {
+      hitsList.innerHTML = '<div style="color: var(--muted); text-align: center; margin: auto;">هیچ سندی بازیابی نشد.</div>';
+    } else {
+      let hHtml = '';
+      hits.forEach((h, idx) => {
+        const isPoison = h.doc_id >= 9000;
+        const poisonBadge = isPoison ? '<span class="poison-pill">⚠️ سند جعلی (Poison Doc)</span>' : '';
+        hHtml += `
+          <div class="hit-item ${isPoison ? 'style="border-color: var(--accent);"' : ''}">
+            <div class="hit-header">
+              <span>#${idx + 1} | شناسه سند: <strong>${h.doc_id}</strong> (${h.category || 'دسته‌بندی نشده'})</span>
+              ${poisonBadge}
+            </div>
+            <div class="hit-scores">
+              ${h.fused !== undefined ? `<span>Fused: ${h.fused}</span>` : ''}
+              ${h.bm25 !== undefined ? `<span>BM25: ${h.bm25}</span>` : ''}
+              ${h.dense !== undefined ? `<span>Dense: ${h.dense}</span>` : ''}
+              ${h.score !== undefined ? `<span>Rerank Score: ${h.score}</span>` : ''}
+            </div>
+            <div class="hit-text">${h.snippet || h.text || ''}</div>
+          </div>
+        `;
+      });
+      hitsList.innerHTML = hHtml;
+    }
+  } catch (err) {
+    resBox.innerHTML = `<div style="color: var(--accent);">خطا در برقراری ارتباط با سرور: ${err.message}</div>`;
+    hitsList.innerHTML = '';
+  }
+}
+
+function handleClarify(baseQuery, option) {
+  const refinedQuery = `${baseQuery} (${option})`;
+  document.getElementById('queryInput').value = refinedQuery;
+  runQuery(refinedQuery);
+}
+
+// Initial run
+window.onload = () => runQuery();
+</script>
+</body>
+</html>

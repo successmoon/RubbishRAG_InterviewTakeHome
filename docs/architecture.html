@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Architecture — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html" class="active">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Technical Specification</span>
+      <span class="badge badge-success">Dual Architecture</span>
+    </div>
+
+    <h1>🏛️ System Architecture & Data Flow</h1>
+    <p class="lead">Compare the baseline naive pipeline with the modern adaptive architecture, and examine the underlying information retrieval mathematics.</p>
+
+    <h2>1. Baseline Naive Pipeline (Current State)</h2>
+    <pre><code>corpus/test.csv  (330 Persian Credit-Scoring QA Pairs: Question | Category | BriefAnswer | Answer | Keyword)
+       │
+       ▼
+┌──────────────┐  rubbish_rag/pipeline.py              ┌─────────────────────────────────┐
+│ @chunker     │  Fixed 300-char splits of Answer      │  BLACK BOX (server/)            │
+│      ────────┼─────────────────────────────────────▶ │  POST /retrieve                 │
+│ @retriever   │  Forwards raw query, top-k hits       │  Computes BM25, Dense & Fused   │
+│ @reranker    │  Orders by shared-word count          │  Returns hits with scores       │
+│ @resolver    │  Answers from top hits                └─────────────────────────────────┘
+└──────────────┘                                                       │ Quota: 1000/key
+       │                                                               ▼ Logged in trace.jsonl
+       ▼
+answer {"status":"answer","brief":"...","cites":[...]}  OR  clarify {"status":"clarify","question":"...","options":[...]}</code></pre>
+
+    <h2>2. Advanced Adaptive Pipeline (Production & Judge Track)</h2>
+    <pre><code>                               ┌────────────────────────┐
+                               │       User Query       │
+                               └───────────┬────────────┘
+                                           │
+                                           ▼
+                              ┌─────────────────────────┐
+                              │ System-1 Decision Judge │ (rubbish_rag/judge.py)
+                              └────────────┬────────────┘
+                                           │
+               ┌───────────────────────────┼───────────────────────────┐
+               │                           │                           │
+               ▼                           ▼                           ▼
+       [Conversational]              [Ambiguous]               [Factual Domain]
+          NO_RETRIEVAL              CLARIFY & OPTIONS        RETRIEVAL PLAN (k=2..8)
+               │                           │                           │
+               ▼                           ▼                           ▼
+         Direct Output              Ask Clarifying                     │
+                                       Question                        ▼
+                                                          ┌─────────────────────────┐
+                                                          │  Dual Hybrid Retrieval  │ (BM25 + Semantic)
+                                                          └────────────┬────────────┘
+                                                                       │
+                                                                       ▼
+                                                          ┌─────────────────────────┐
+                                                          │ Reciprocal Rank Fusion  │ (RRF + Slot Boosts)
+                                                          └────────────┬────────────┘
+                                                                       │
+                                                                       ▼
+                                                          ┌─────────────────────────┐
+                                                          │   Evidence Sufficiency  │ (Adaptive Stopping)
+                                                          │        Assessment       │
+                                                          └────────────┬────────────┘
+                                                                       │
+                                  ┌────────────────────────────────────┼────────────────────────────────────┐
+                                  │                                    │                                    │
+                                  ▼                                    ▼                                    ▼
+                            [SUFFICIENT]                         [INSUFFICIENT]                       [CONFLICTING/SPAM]
+                               ANSWER                            RETRIEVE_MORE                              ABSTAIN
+                         (Grounded Citation)                 (Bounded Rounds &le; 2)                 (Adversarial Demotion)</code></pre>
+
+    <h2>3. Scoring Mathematics in the Black Box</h2>
+
+    <h3>Linear Score Fusion Distortion</h3>
+    <p>The black-box server combines sparse BM25 and overlap dense scores using naive min-max scaling:</p>
+    <pre><code>fused = 0.5 * (bm25 / max(BM25)) + 0.5 * (dense / max(Dense))</code></pre>
+    <p>
+      <strong>Why this fails:</strong> BM25 and dense scores follow completely different probability distributions. A single extreme outlier score compresses the entire score space, causing lower-ranked hits to cluster artificially.
+    </p>
+    <p>
+      <strong>The remedy:</strong> Implement <strong>Reciprocal Rank Fusion (RRF)</strong> client-side:
+    </p>
+    <pre><code>RRF_score(d) = Σ_m [ 1 / (60 + rank_m(d)) ]</code></pre>
+
+    <h3>Aggressive BM25 Document Length Penalty</h3>
+    <p>The BM25 formula in the server is parameterized with $k_1 = 1.2$ and $b = 0.9$:</p>
+    <pre><code>denom = f + k1 * (1 - b + b * (doc_len / avgdl))</code></pre>
+    <p>
+      Because $b = 0.9$ is excessively high without a BM25+ floor, thorough answers that explain credit rules in detail are severely penalized compared to short, uninformative fragments.
+    </p>
+
+    <h2>4. The 10 Observed Failure Modes & Investigation Areas</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>1. Linear Fusion Distortion</h3>
+        <p>Min-max normalization distorts relative ranks when outlier scores occur. Replace with rank-based fusion (RRF).</p>
+      </div>
+      <div class="card">
+        <h3>2. BM25 Length Bias</h3>
+        <p>High $b=0.9$ penalizes informative answers. Needs length-binned compensation and analysis via diagnostic plots.</p>
+      </div>
+      <div class="card">
+        <h3>3. Adversarial / Poison Documents</h3>
+        <p>Keyword-stuffed fake documents exist in the index (doc IDs &ge; 9000). Grounding against <code>corpus/test.csv</code> prevents citation.</p>
+      </div>
+      <div class="card">
+        <h3>4. Persian Script Variations</h3>
+        <p>Digits (۲۵۰ vs 250), Arabic characters (ي/ك/ة), and colloquial forms (میشه vs می‌شود) require canonical normalization.</p>
+      </div>
+      <div class="card">
+        <h3>5. Fragmented Chunking</h3>
+        <p>Fixed 300-char slices sever numbers from their units and drop category headers. Design metadata-aware chunks.</p>
+      </div>
+      <div class="card">
+        <h3>6. Bag-of-Words Reranker Trap</h3>
+        <p>Simple token overlap favors repetitive keyword spam over precise credit entities. Implement slot-aware scoring.</p>
+      </div>
+      <div class="card">
+        <h3>7. Ambiguity Resolution Gating</h3>
+        <p>Queries missing required decision entities should trigger the clarification contract rather than hallucinating answers.</p>
+      </div>
+      <div class="card">
+        <h3>8. Polarity & Negation Sensitivity</h3>
+        <p>Negation particles (نمی‌شود vs می‌شود) are ignored by bag-of-words counters, leading to opposite conclusions.</p>
+      </div>
+      <div class="card">
+        <h3>9. Context Redundancy</h3>
+        <p>Multiple chunks from the same document flood the top-k window, diluting context. Implement deduplication.</p>
+      </div>
+      <div class="card">
+        <h3>10. Fact Verification & Grounding</h3>
+        <p>Subtle metric discrepancies between candidates and reference facts require grounding against verified corpus records.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="adaptive-judge.html">Next: Adaptive Judge Track →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

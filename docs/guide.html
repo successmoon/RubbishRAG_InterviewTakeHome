@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering Guide — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html" class="active">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Hands-On Methodology</span>
+      <span class="badge badge-success">Empirical Cycle</span>
+    </div>
+
+    <h1>🛠️ Engineering Guide: Scientific Probing</h1>
+    <p class="lead">How to formulate falsifiable hypotheses, probe the black box, analyze score distributions, and verify improvements empirically.</p>
+
+    <h2>The Investigation Loop</h2>
+    <ol>
+      <li><strong>Observe a Symptom:</strong> Run <code>python3 rubbish.py bepar "&lt;query&gt;"</code> and inspect which documents rank at top-1.</li>
+      <li><strong>Formulate a Falsifiable Hypothesis:</strong> e.g., <em>"The retriever ranks document 9002 first because the word 'مالیات' is repeated 12 times in the poison document."</em></li>
+      <li><strong>Run Diagnostic Probes:</strong> Execute targeted queries with varied lengths, slot values, or synonyms. Every probe is automatically logged to <code>traces/trace.jsonl</code> with exact timestamps and hit scores.</li>
+      <li><strong>Inspect Specific Traces:</strong> Run <code>python3 rubbish.py inspect-trace &lt;TRACE_ID_OR_KEYWORD&gt;</code> to inspect hit scores and rankings in detail.</li>
+      <li><strong>Plot the Evidence:</strong> Run <code>python3 rubbish.py bekesh</code> (or <code>rapchik</code>) to generate scatter and histogram diagrams in <code>plots/</code>.</li>
+      <li><strong>Implement the Fix:</strong> Write the solution in <code>rubbish_rag/</code> using decorator overrides.</li>
+      <li><strong>Compare Benchmark Runs:</strong> Run <code>python3 rubbish.py compare traces/baseline.json traces/improved.json</code> to verify benchmark shifts side-by-side.</li>
+    </ol>
+
+    <h2>Developer Toolkit & CLI Commands</h2>
+
+    <h3>1. Probing a Single Query (<code>bepar</code>)</h3>
+    <pre><code>python3 rubbish.py bepar "رتبه C1 یعنی چی؟" --topk 5</code></pre>
+    <p>Output breakdown:</p>
+    <ul>
+      <li><code>doc_id</code>: Document index (IDs &ge; 9000 indicate injected poison documents).</li>
+      <li><code>bm25</code>: BM25 score assigned by the server.</li>
+      <li><code>dense</code>: Overlap-based dense score.</li>
+      <li><code>fused</code>: Server-combined score (naive linear min-max combination).</li>
+    </ul>
+
+    <h3>2. Inspecting Logged Traces (<code>inspect-trace</code>)</h3>
+    <pre><code>python3 rubbish.py inspect-trace "رتبه C1"</code></pre>
+    <p>Pretty-prints the full retrieval response, score breakdown, and timestamps for matching trace entries in <code>traces/trace.jsonl</code>.</p>
+
+    <h3>3. Comparing Benchmark Runs (<code>compare</code>)</h3>
+    <pre><code>python3 rubbish.py compare traces/metrics_baseline.json traces/metrics.json</code></pre>
+    <p>Outputs a side-by-side comparison table of accuracy, answer accuracy, clarify accuracy, and latency percentiles.</p>
+
+    <h3>4. Running the System-1 Decision Judge (<code>judge</code> & <code>judge-bench</code>)</h3>
+    <pre><code># Single query decision:
+python3 rubbish.py judge "بانک صادرات به رتبه E3 وام میده؟"
+
+# Comprehensive quantitative benchmark:
+python3 rubbish.py judge-bench --split test</code></pre>
+
+    <h3>5. Generating Diagnostic Plots (<code>bekesh</code>)</h3>
+    <pre><code>python3 rubbish.py bekesh</code></pre>
+    <p>Generates four diagnostic diagrams in <code>plots/</code>:</p>
+    <ul>
+      <li><code>plots/score_spread.png</code>: Top-1 vs Top-5 score gap per query. Flat spreads indicate high ambiguity or uninformative rankings.</li>
+      <li><code>plots/length_vs_bm25.png</code>: BM25 scores plotted against chunk length (exposing the severe length penalty bias $b=0.9$).</li>
+      <li><code>plots/repetition_vs_bm25.png</code>: Demonstrates how keyword-stuffed poison documents exploit the BM25 formula.</li>
+      <li><code>plots/report_card.png</code>: Your candidate report card with accuracy and latency metrics.</li>
+    </ul>
+
+    <h2>Persian Normalization Blueprint</h2>
+    <p>Persian text in credit scoring contains several common variations that break naive string matching:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Raw Variation</th>
+          <th>Canonical Target</th>
+          <th>Why it Matters</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Digits</strong></td>
+          <td><code>۲۵۰</code> (FA) / <code>٢٥٠</code> (AR)</td>
+          <td><code>250</code> (ASCII)</td>
+          <td>Credit threshold numbers must match across scripts.</td>
+        </tr>
+        <tr>
+          <td><strong>Arabic Letters</strong></td>
+          <td><code>ي</code>, <code>ك</code>, <code>ة</code></td>
+          <td><code>ی</code>, <code>ک</code>, <code>ه</code></td>
+          <td>Users type on Arabic or Persian keyboards interchangeably.</td>
+        </tr>
+        <tr>
+          <td><strong>Half-Space (ZWNJ)</strong></td>
+          <td><code>می‌شود</code> (ZWNJ: <code>\u200c</code>)</td>
+          <td>Normalized whitespace</td>
+          <td>Prevents tokens from splitting or merging arbitrarily.</td>
+        </tr>
+        <tr>
+          <td><strong>Colloquial Forms</strong></td>
+          <td><code>میشه</code>, <code>چیه</code>, <code>چقد</code>, <code>رتبم</code></td>
+          <td><code>می‌شود</code>, <code>چیست</code>, <code>چقدر</code>, <code>رتبه من</code></td>
+          <td>User colloquial queries must match formal FAQ rows.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Entity Slot Mining</h2>
+    <p>In this domain, swapping a single entity can completely invert the correct answer:</p>
+    <ul>
+      <li><strong>Bank:</strong> ملی, صادرات, تجارت, توسعه صادرات, ملت, سپه, پاسارگاد (each bank sets its own loan approval policy).</li>
+      <li><strong>Rank Code:</strong> A1, A2, A3, B1, B2, B3, C1, C2, C3, D1, D2, D3, E1, E2, E3.</li>
+      <li><strong>Persona:</strong> حقیقی (individual, score 250–900) vs حقوقی (corporate entity).</li>
+      <li><strong>Debt Type:</strong> چک برگشتی, بدهی مالیاتی, تسهیلات معوق, محکومیت‌های قضایی.</li>
+      <li><strong>Distinctive Numbers:</strong> 250 (minimum credit score threshold), 24 (hours), 5 (years of credit history).</li>
+    </ul>
+
+    <h2>Clarification Gating Rules</h2>
+    <p>When an ambiguous query is received, the resolver must output the clarification contract:</p>
+    <pre><code>{
+  "status": "clarify",
+  "question": "منظورتان بدهی تسهیلاتی (بانکی) است، یا بدهی مالیاتی و چک؟",
+  "options": ["بدهی تسهیلاتی / وام", "بدهی مالیاتی", "چک برگشتی", "نمی‌دانم"]
+}</code></pre>
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="deliverables.html">Next: Deliverables & Rubric →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

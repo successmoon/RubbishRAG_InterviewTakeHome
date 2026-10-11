@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Challenge Tasks & Scope — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html" class="active">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Task Matrix</span>
+      <span class="badge badge-success">3-Tier Architecture</span>
+    </div>
+
+    <h1>🎯 Engineering Tasks & Scope</h1>
+    <p class="lead">
+      RubbishRAG is structured into three clear tiers to respect your time while allowing senior candidates to demonstrate deep AI engineering judgment.
+    </p>
+
+    <div class="card-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 2rem;">
+      <div class="card" style="border-top: 4px solid var(--primary);">
+        <h3>Tier 1: Required Core</h3>
+        <p><strong>Time Budget:</strong> ~3–4 hours</p>
+        <p>Complete all 4 foundational tasks (A, B, C, D) to establish a functioning, robust baseline.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid var(--warning);">
+        <h3>Tier 2: Choose-2 Electives</h3>
+        <p><strong>Time Budget:</strong> ~2 hours</p>
+        <p>Select any <strong>2 of 4</strong> deep-dive tracks (E, F, G, H) that match your expertise.</p>
+      </div>
+      <div class="card" style="border-top: 4px solid #a855f7;">
+        <h3>Tier 3: Staff Bonus</h3>
+        <p><strong>Time Budget:</strong> ~3–4 hours (Optional)</p>
+        <p>Design an Adaptive System-1 Decision Judge for pre-retrieval routing and dynamic top-k.</p>
+      </div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+    <h2>Tier 1: Required Core Tasks (All Candidates Complete)</h2>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Task A — Retrieval Characterization & Diagnostic Probing</h3>
+      <p><strong>Motivation:</strong> Never optimize a retriever blindly. You must measure baseline failure modes empirically before proposing remedies.</p>
+      <ul>
+        <li><strong>Objective:</strong> Use <code>python3 rubbish.py bepar "&lt;query&gt;"</code> and <code>python3 rubbish.py bekesh</code> to capture at least 10 diagnostic traces across short, long, and entity-specific queries.</li>
+        <li><strong>Artifact:</strong> Document baseline Hit@3 and Top1-Top5 fused score spreads in <code>docs/PROOF.md</code> citing trace IDs from <code>traces/trace.jsonl</code>.</li>
+        <li><strong>Weak Solution:</strong> Guessing failure modes without citing trace IDs or running ablations.</li>
+        <li><strong>Excellent Solution:</strong> Formulating falsifiable hypotheses, plotting distributions, and isolating score anomalies with controlled probes.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Task B — Hybrid Retrieval Fusion & Length Normalization</h3>
+      <p><strong>Motivation:</strong> The server's naive linear score combination <code>0.5*(bm25/max) + 0.5*(dense/max)</code> is vulnerable to outlier score distortion, while BM25 $b=0.9$ penalizes thorough, detailed answers.</p>
+      <ul>
+        <li><strong>Objective:</strong> Implement client-side rank fusion (e.g. Reciprocal Rank Fusion, $RRF = \sum \frac{1}{60 + \text{rank}}$) or length-compensated rescoring.</li>
+        <li><strong>Artifact:</strong> Updated <code>@R.retriever</code> in <code>rubbish_rag/pipeline.py</code> and an ablation plot in <code>plots/length_vs_bm25.png</code>.</li>
+        <li><strong>Weak Solution:</strong> Blindly swapping constants without explaining why rank distributions outperform raw score scales.</li>
+        <li><strong>Excellent Solution:</strong> Demonstrating through comparative traces how RRF prevents outlier compression and improves recall of comprehensive gold answers.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Task C — Persian Text Normalization & Slot Extraction</h3>
+      <p><strong>Motivation:</strong> Persian credit scoring involves multi-script digits (۲۵۰ vs 250), Arabic letter variants (ي/ك/ة), and colloquial speech (میشه vs می‌شود) that cause token-level false negatives.</p>
+      <ul>
+        <li><strong>Objective:</strong> Implement canonical normalization in <code>rubbish_rag/normalize_fa.py</code> and domain slot parsing (banks, ranks A1..E3, persona, debt types) in <code>rubbish_rag/slots.py</code>.</li>
+        <li><strong>Artifact:</strong> Verified unit tests in <code>tests/test_normalization.py</code> and <code>tests/test_slots.py</code> passing via <code>pytest</code>.</li>
+        <li><strong>Weak Solution:</strong> Ad-hoc string replaces that corrupt legitimate words or alter numerical semantics.</li>
+        <li><strong>Excellent Solution:</strong> Clean, idempotent transformation pipeline covering digits, half-spaces, colloquial verbs, and entity regexes with 100% test pass rate.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Task D — Chunking Strategy & Metadata Preservation</h3>
+      <p><strong>Motivation:</strong> Fixed 300-character slices sever sentences mid-phrase, drop regulatory category headers, and isolate numbers from their units.</p>
+      <ul>
+        <li><strong>Objective:</strong> Implement boundary-aware or metadata-augmented chunking in <code>@R.chunker</code> (e.g. prefixing <code>[Category | Keyword]</code> and respecting sentence delimiters).</li>
+        <li><strong>Artifact:</strong> Improved <code>chunk()</code> function in <code>rubbish_rag/pipeline.py</code>.</li>
+        <li><strong>Weak Solution:</strong> Increasing chunk size blindly to 1000 characters, introducing token bloat and diluted retrieval.</li>
+        <li><strong>Excellent Solution:</strong> Context-preserving chunks that retain critical domain anchors while bounding segment lengths.</li>
+      </ul>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+    <h2>Tier 2: Choose-2 Elective Engineering Tracks (Select Any 2)</h2>
+    <p>Choose <strong>two</strong> of the four tracks below based on your interests and strengths. You will be evaluated on the depth and empirical validation of your two chosen tracks.</p>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Track E: Evidence Reranking & Diversity (MMR / Deduplication)</h3>
+      <p><strong>Focus:</strong> Prevent multiple chunks from the exact same document from monopolizing the top-k window.</p>
+      <ul>
+        <li><strong>Implementation:</strong> Implement document-level deduplication or Maximal Marginal Relevance (MMR) in <code>@R.reranker</code> to guarantee diverse evidence coverage in top-3 cites.</li>
+        <li><strong>Key Metric:</strong> Document redundancy rate in top-5 and Hit@3 recall gain.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Track F: Adversarial & Noise Document Defense</h3>
+      <p><strong>Focus:</strong> Guard against keyword-stuffed fake documents injected into the index (IDs &ge; 9000).</p>
+      <ul>
+        <li><strong>Implementation:</strong> Ground candidates against verified corpus records in <code>corpus/test.csv</code> or implement repetition penalty scoring to demote spam. (Note: do NOT hardcode arbitrary magic numbers).</li>
+        <li><strong>Key Metric:</strong> Poison citation rate in top-3 answers (must reach 0%).</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Track G: Polarity & Negation-Aware Matching</h3>
+      <p><strong>Focus:</strong> Distinguish statements of opposite polarity that share high unigram overlap (e.g. <em>"می‌شود"</em> vs <em>"نمی‌شود"</em>, <em>"دارای سابقه"</em> vs <em>"فاقد سابقه"</em>).</p>
+      <ul>
+        <li><strong>Implementation:</strong> Implement negation-sensitive scoring that penalizes polarity inversions during candidate reranking.</li>
+        <li><strong>Key Metric:</strong> Zero citations of opposing polarity chunks on negated credit regulation queries.</li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3>Track H: Grounded Resolution & Clarification Gating</h3>
+      <p><strong>Focus:</strong> Resolve queries that are intrinsically ambiguous (e.g. "بدهی دارم") rather than hallucinating an unsupported answer.</p>
+      <ul>
+        <li><strong>Implementation:</strong> In <code>@R.resolver</code>, return the clarification contract with dynamic multiple-choice options when key decision slots are absent.</li>
+        <li><strong>Key Metric:</strong> Clarification accuracy &gt; 70% on under-specified queries without regressing answer accuracy on specific queries.</li>
+      </ul>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+    <h2>Tier 3: Staff-Level Bonus Track (Adaptive System-1 Decision Judge)</h2>
+    <div class="card" style="border: 2px solid #a855f7;">
+      <h3>Track I: Adaptive RAG Decision Judge</h3>
+      <p>
+        Design a fast structured decision layer in front of and within the RAG pipeline to dynamically control retrieval necessity, context budgeting, evidence sufficiency, and calibrated escalation.
+      </p>
+      <ul>
+        <li><strong>Reference Implementation:</strong> Provided in <code>rubbish_rag/judge.py</code> with dataset in <code>data/judge_dataset.json</code>.</li>
+        <li><strong>CLI Tools:</strong> <code>python3 rubbish.py judge "&lt;query&gt;"</code> and <code>python3 rubbish.py judge-bench</code>.</li>
+        <li><strong>Full Documentation:</strong> See the dedicated <a href="adaptive-judge.html">Adaptive RAG Decision Judge Guide →</a>.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="architecture.html">Next: System Architecture →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

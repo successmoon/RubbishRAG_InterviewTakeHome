@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive Studio & LangChain Orchestrator — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html" class="active">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Bonus Features</span>
+      <span class="badge badge-success">Interactive Studio</span>
+    </div>
+
+    <h1>🚀 Interactive Web Studio & LangChain Orchestrator</h1>
+    <p class="lead">An end-to-end interactive playground and modular LangChain-compatible pipeline with dynamic ambiguity resolution.</p>
+
+    <h2>1. The Minimalistic Web Studio UI</h2>
+    <p>RubbishRAG includes a built-in, lightweight Web Studio playground. You can launch it with a single command:</p>
+
+    <pre><code>python3 rubbish.py ui --port 8000</code></pre>
+
+    <p>Then navigate to <a href="http://localhost:8000/ui" target="_blank">http://localhost:8000/ui</a> (or <code>http://localhost:8000/</code>).</p>
+
+    <h3>Studio Capabilities</h3>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Live Mode Switching</h3>
+        <p>Switch dynamically between <strong>Naive RubbishRAG</strong> (baseline) and <strong>Fixed Orchestrator</strong> to visually observe the performance gap.</p>
+      </div>
+      <div class="card">
+        <h3>Interactive Clarification</h3>
+        <p>When an ambiguous query is submitted (e.g. <code>بدهی دارم</code>), the UI displays clickable option buttons. Clicking an option dynamically resolves the ambiguity!</p>
+      </div>
+      <div class="card">
+        <h3>Score Inspection</h3>
+        <p>Inspect raw BM25, Dense, Fused, and Rerank scores per retrieved document hit, alongside suspicious distractor warnings.</p>
+      </div>
+    </div>
+
+    <h2>2. Interactive Terminal Clarification Chat</h2>
+    <p>If you prefer testing directly in your shell, RubbishRAG includes a multi-turn clarification loop:</p>
+
+    <pre><code>python3 rubbish.py chat</code></pre>
+
+    <p><strong>Example Session:</strong></p>
+    <pre><code>Query > بدهی دارم چی میشه؟
+
+[⚠️  نیاز به شفاف‌سازی]: منظورتان بدهی تسهیلاتی (بانکی) است، یا بدهی مالیاتی و چک؟
+   1) بدهی تسهیلاتی / وام
+   2) بدهی مالیاتی
+   3) چک برگشتی
+   4) نمی‌دانم
+
+گزینه یا پاسخ شما > 2
+
+[✅ پاسخ نهایی]: بله، بدهی مالیاتی در صورت ورود به مرحله وصول و اجرا، به عنوان یکی از خطوط قرمز تلقی میشود.
+  ارجاعات (Cites): [17, 239, 179]</code></pre>
+
+    <h2>3. LangChain LCEL-Compatible Orchestrator</h2>
+    <p>
+      The pipeline is packaged as a modular orchestrator in <code>rubbish_rag/orchestrator.py</code> implementing the standard LangChain Runnable interface:
+    </p>
+
+    <pre><code>from rubbish_rag.orchestrator import get_orchestrator
+
+# Initialize the orchestrator
+orchestrator = get_orchestrator()
+
+# Standalone execution
+result = orchestrator.run("رتبه C1 یعنی چی؟")
+print(result["brief"])
+print("Citations:", result["cites"])
+
+# Standard LangChain Runnable invocation
+response = orchestrator.invoke({"query": "بانک صادرات به رتبه E3 وام میده؟"})
+print("Response:", response["brief"])</code></pre>
+
+    <h2>4. API Server & Swagger Documentation</h2>
+    <p>The backend is fully accessible via OpenAPI endpoints when running the server:</p>
+    <ul>
+      <li><strong>Interactive Swagger UI:</strong> <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a></li>
+      <li><strong>ReDoc Reference:</strong> <a href="http://localhost:8000/redoc" target="_blank">http://localhost:8000/redoc</a></li>
+      <li><strong>Health Check Endpoint:</strong> <code>GET /health</code></li>
+      <li><strong>Retrieval Endpoint:</strong> <code>POST /retrieve</code></li>
+      <li><strong>Submission Scoring:</strong> <code>POST /submit</code></li>
+      <li><strong>Studio Query API:</strong> <code>POST /studio/query</code></li>
+    </ul>
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="index.html">← Back to Overview</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

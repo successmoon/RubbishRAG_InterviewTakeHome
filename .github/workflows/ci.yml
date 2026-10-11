@@ -1,0 +1,39 @@
+name: RubbishRAG CI
+
+on:
+  push:
+    branches: [ main, candidate ]
+  pull_request:
+    branches: [ main, candidate ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest
+
+    - name: Run Pytest Test Suite
+      run: |
+        pytest tests/ -v
+
+    - name: CLI Smoke Test
+      run: |
+        python rubbish.py salam
+        python rubbish.py bepar "رتبه C1 یعنی چی؟" --topk 3
+        python rubbish.py judge "رتبه A2 چیست؟"
+        python rubbish.py judge-bench --split dev

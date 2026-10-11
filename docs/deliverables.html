@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deliverables & Grading Rubric — RubbishRAG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="index.html" class="brand">
+    <span class="brand-icon">🗑️</span>
+    <span>RubbishRAG</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">📌 Overview & Premise</a></li>
+    <li><a href="tasks.html">🎯 Tasks & Scope</a></li>
+    <li><a href="architecture.html">🏛️ System Architecture</a></li>
+    <li><a href="adaptive-judge.html">🧠 Adaptive Judge (Bonus)</a></li>
+    <li><a href="guide.html">🛠️ Engineering Guide</a></li>
+    <li><a href="deliverables.html" class="active">📋 Deliverables & Rubric</a></li>
+    <li><a href="glossary.html">📖 Metrics Glossary</a></li>
+    <li><a href="ui.html">🚀 Web Studio & Playground</a></li>
+  </ul>
+  <div class="sidebar-footer">
+    <p>RubbishRAG v2.0<br>Principal AI Take-Home</p>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <div class="container">
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+      <span class="badge badge-primary">Evaluation Rubric</span>
+      <span class="badge badge-warning">Grading Standards</span>
+    </div>
+
+    <h1>📋 Deliverables & Grading Standards</h1>
+    <p class="lead">What you must submit, how submissions are evaluated, and the multi-dimensional assessment rubric.</p>
+
+    <h2>Required Deliverables</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>1. Pipeline Implementation</h3>
+        <p>Your clean overrides in <code>rubbish_rag/</code> (implementing modular, production-ready logic for chunking, hybrid retrieval, fusion, reranking, and ambiguity resolution).</p>
+      </div>
+      <div class="card">
+        <h3>2. Evidence Document (PROOF.md)</h3>
+        <p>A rigorous report created from <code>docs/PROOF_template.md</code> linking each identified failure mode and architectural decision to exact trace IDs, probe logs, and ablation plots.</p>
+      </div>
+      <div class="card">
+        <h3>3. Signed Submission Archive</h3>
+        <p>Generated automatically via <code>python3 rubbish.py bastesh</code> containing your source code, session traces (<code>traces/trace.jsonl</code>), comparative plots, and SHA256 integrity manifest.</p>
+      </div>
+    </div>
+
+    <h2>Packaging Your Submission</h2>
+    <p>Run the automated packaging command from your repository root:</p>
+    <pre><code>python3 rubbish.py bastesh</code></pre>
+    <p>This command automatically:</p>
+    <ul>
+      <li>Executes the benchmark evaluation and records your run metadata and scorecard in <code>README.md</code>.</li>
+      <li>Validates presence of your implementation, <code>docs/PROOF.md</code>, session traces, and generated artifacts.</li>
+      <li>Archives your submission into <code>submissions/submission.zip</code> with an immutable SHA256 manifest to guarantee reproducibility.</li>
+    </ul>
+
+    <h2>Multi-Dimensional Evaluation Rubric</h2>
+    <p>Submissions are evaluated on senior AI engineering craft, scientific rigor, and software quality across 7 dimensions (100 points total), plus up to +20 bonus points:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>Weight</th>
+          <th>What We Look For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Problem Diagnosis &amp; Scientific Methodology</strong></td>
+          <td>20%</td>
+          <td>Formulates falsifiable hypotheses before writing code. Designs targeted probe queries to isolate failure modes rather than guessing or blindly tweaking parameters.</td>
+        </tr>
+        <tr>
+          <td><strong>2. Retrieval Precision &amp; IR Correctness</strong></td>
+          <td>20%</td>
+          <td>Sound Persian normalization, entity-aware slot preservation, score scale calibration, length bias mitigation, and defensive filtering against irrelevant or synthetic distractors.</td>
+        </tr>
+        <tr>
+          <td><strong>3. Answer Quality, Faithfulness &amp; Guardrails</strong></td>
+          <td>15%</td>
+          <td>Accurate responses grounded strictly in retrieved context. Clean handling of ambiguity (asking structured clarifying questions) and defensive abstention when evidence is absent.</td>
+        </tr>
+        <tr>
+          <td><strong>4. Software Architecture &amp; Code Quality</strong></td>
+          <td>15%</td>
+          <td>Modular, clean, idiomatic Python code with type hints, docstrings, defensive exception handling, minimal latency overhead (&lt;100ms per query on CPU), and zero fragile monkey-patching.</td>
+        </tr>
+        <tr>
+          <td><strong>5. Observability, Telemetry &amp; Diagnostics</strong></td>
+          <td>10%</td>
+          <td>Rich structured logging in <code>traces/trace.jsonl</code> with query IDs, slot extraction dumps, sub-scores, reranking deltas, latency timing, and decision branches.</td>
+        </tr>
+        <tr>
+          <td><strong>6. Testing Rigor &amp; Reproducibility</strong></td>
+          <td>10%</td>
+          <td>Deterministic execution across runs. Comprehensive unit tests covering normalization, entity extraction, reranking, and edge cases. Passes CI test suite.</td>
+        </tr>
+        <tr>
+          <td><strong>7. Documentation &amp; Engineering Communication</strong></td>
+          <td>10%</td>
+          <td>Crisp, professional <code>docs/PROOF.md</code> citing specific trace IDs, comparative metric tables, and ablation analysis. Clear trade-off explanations.</td>
+        </tr>
+        <tr>
+          <td><strong>Bonus Tracks (Staff Track / UI / Orchestrator)</strong></td>
+          <td>+20%</td>
+          <td>Implementation of the <strong>Adaptive System-1 Decision Judge</strong> (routing, dynamic $k$, confidence calibration), LangChain LCEL orchestrator, or Web Studio improvements.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Target Performance Benchmarks</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Overall Accuracy</h3>
+        <p><strong>&gt; 65%</strong> on held-out test distribution (Broken baseline: ~25–30%).</p>
+      </div>
+      <div class="card">
+        <h3>Clarification Accuracy</h3>
+        <p><strong>&gt; 50%</strong> on ambiguous queries (Broken baseline: 0% — hallucinates ungrounded answer).</p>
+      </div>
+      <div class="card">
+        <h3>Trace Integrity</h3>
+        <p>Comprehensive telemetry with &ge; 15 distinct diagnostic probes captured across testing sessions.</p>
+      </div>
+    </div>
+
+    <h2>Technical Discussion &amp; Code Walkthrough</h2>
+    <p>
+      During the follow-up technical interview, you will walk through your engineering decisions and methodology:
+    </p>
+    <ul>
+      <li>Walk through your investigation process and explain how your probe queries isolated specific pipeline flaws.</li>
+      <li>Explain the architectural trade-offs you balanced between retrieval recall, precision, latency budget, and candidate context length.</li>
+      <li>Demonstrate how your pipeline defends against edge cases: character normalization variations, loan vs credit card ambiguity, and adversarial distractors.</li>
+      <li>Present your empirical findings using the comparative plots and trace logs generated during your experiments.</li>
+    </ul>
+    <p>
+      Ground every claim in empirical evidence from your traces and ablation experiments.
+    </p>
+  </div>
+
+  <footer class="footer">
+    <span>RubbishRAG Documentation Suite</span>
+    <span><a href="glossary.html">Next: Metrics Glossary →</a></span>
+  </footer>
+</div>
+
+</body>
+</html>
