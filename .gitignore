@@ -11,3 +11,5 @@ server/hidden_eval.json
 server/server_index.json
 .candidate.json
 .DS_Store
+corpus/test.json
+Utils

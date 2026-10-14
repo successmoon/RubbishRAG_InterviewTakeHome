@@ -72,7 +72,11 @@ def cmd_bepar(args):
     import rubbish_rag.pipeline  # noqa registers RubbishRAG stages
     # note: pipeline.retrieve ignores key; call remote directly for logging key
     from server._hidden_retriever import remote_retrieve
-    hits = remote_retrieve(args.query, topk=args.topk, api_key=args.key)
+    #hits = remote_retrieve(args.query, topk=args.topk, api_key=args.key)
+    ######
+    hits = R.get("retriever")(args.query, topk=args.topk)
+    ######
+    
     hits = R.get("reranker")(args.query, hits)
     pred = R.get("resolver")(args.query, hits)
     print("--- hits (fused) ---")
